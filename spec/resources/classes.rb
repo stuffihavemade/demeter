@@ -19,6 +19,22 @@ class Address
   attr_accessor :country
   attr_accessor :state
   attr_accessor :zip_code
+  attr_accessor :coordinate
+
+  extend Demeter
+
+  def initialize
+    @coordinate = Coordinate.new
+  end
+end
+
+class Coordinate
+  attr_accessor :lat
+  attr_accessor :lon
+
+  def last_of_arbitrary_number_of_args *args
+    args[-1]
+  end
 end
 
 class VideoGame
@@ -41,4 +57,12 @@ end
 
 class Animal
   attr_accessor :name
+end
+
+class NoAccessorsParent
+  extend Demeter
+  demeter :no_accessors_child
+end
+
+class NoAccessorsChild
 end

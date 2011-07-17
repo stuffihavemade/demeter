@@ -53,19 +53,53 @@ You can easily override a method that has been "demeterized"; just declare it be
 
 	class User < ActiveRecord::Base
 	  has_one :address
-	  demeter_address
+	  demeter :address
 
 	  def address_country
 	    @address_country ||= address.country.upcase
 	  end
 	end
 
+Demeter will automatically defined accessor methods from relationship defined. So, for
+	class User < ActiveRecord::Base
+	  demeter :address
+	end
+
+	class Address < ActiveRecord::Base
+	  demeter :coordinate
+	end
+
+	class Coordinate < ActiveRecord::Base
+	  demeter :coordinate
+	end
+
+the methods
+
+    user.address_coordinate
+
+and
+
+    user.address_coordinate=
+
+will be defined automatically. Note that attempting to assign to coordinate
+while having a nil address will throw an error.
+
+Demeter will also automatically be defined for ActiveRecord relationships. So, for
+
+	class User < ActiveRecord::Base
+	  has_one :address
+	end
+
+the demeter method
+
+      user.address_country 
+
+will automatically be defined. 
+
 To-Do
 -----
 
-* Allow more than one level
-* Automatically create accessors
-* Detect all `has_one` and `belongs_to` relations and automatically "demeterized" them on ActiveRecord
+* Allow demeter methods to be defined automatically recursively
 * RDoc
 
 Maintainer
@@ -78,6 +112,7 @@ Contributor
 
 * Nando Vieira (<http://simplesideias.com.br/>)
 * Tino Gomes (<http://blog.tinogomes.com/>)
+* stuffihavemade (<http://github.com/stuffihavemade/>)
 
 License:
 --------

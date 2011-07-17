@@ -26,4 +26,26 @@ describe "Demeter on ActiveRecord" do
     Task.demeter_names.should == [:project]
     Owner.demeter_names.should == [:task]
   end
+
+  it "creates demeter from a has_one definition" do
+    implicit = Implicit.new
+    implicit.build_sub
+    implicit.sub.define_singleton_method(:test){true}
+    debugger
+    implicit.sub_test.should == true
+  end
+
+  it "creates demeter from a belongs_to definition" do
+    sub = Sub.new
+    sub.build_implicit
+    sub.implicit.define_singleton_method(:test){true}
+    sub.implicit_test.should == true
+  end
+
+  it "creates demeter from a has_many definition" do
+    superObj = Super.new
+    superObj.implicits.build
+    superObj.implicits.define_singleton_method(:test){true}
+    superObj.implicits_test.should == true
+  end
 end

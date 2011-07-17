@@ -1,14 +1,17 @@
-require File.dirname(__FILE__) + "/../spec_helper"
+require File.expand_path("../spec_helper", File.dirname(__FILE__))
 
 describe "Demeter" do
   subject { User.new }
 
   before do
     User.demeter :address, :video_game
+    Address.demeter :coordinate
 
     subject.name = "John"
     subject.address.street = "Some street"
     subject.address.zip_code = "98005"
+    subject.address.coordinate.lat = 75.0
+    subject.address.coordinate.lon = 85.0
     subject.video_game.title = "God of War 3"
     subject.video_game.production_year = 1999
     subject.profile.interests = %w(games programming music movies)
@@ -23,6 +26,15 @@ describe "Demeter" do
     user.should respond_to(:address_country)
     user.should respond_to(:address_state)
     user.should respond_to(:address_zip_code)
+  end
+
+  it "should respond to nested demeterized methods" do
+    User.demeter :address
+    Address.demeter :coordinate
+    user = User.new
+
+    user.should respond_to(:address_coordinate_lat)
+    user.should respond_to(:address_coordinate_lon)
   end
 
   it "should keep responding to instance methods" do
@@ -68,9 +80,37 @@ describe "Demeter" do
     subject.video_game_production_year.should == 1999
   end
 
+  it "should delegate nested methods from coordinate object" do
+    subject.address_coordinate_lat.should == 75.0
+    subject.address_coordinate_lon.should == 85.0
+  end
+  
+  it "should delegate setters to nested methods from coordinate object" do
+    subject.address_coordinate_lat = -75.0
+    subject.address_coordinate_lat.should == -75.0
+    subject.address_coordinate_lon = -85.0
+    subject.address_coordinate_lon.should == -85.0
+  end
+
+  it "should be able to pass in an arbitary number of arguments" do
+    result = subject.address_coordinate_last_of_arbitrary_number_of_args(1,2,3)
+    result.should == 3
+  end
+
+  it "should have accessors defined automatically" do
+
+    NoAccessorsParent.new.should respond_to(:no_accessors_child)
+    NoAccessorsParent.new.should respond_to(:no_accessors_child=)
+  end
+
   it "should return nil when demeter object is not set" do
     subject.address = nil
     subject.address_title.should be_nil
+  end
+
+  it "should return nil when nested demeter object is not set" do
+    subject.address = nil
+    subject.address_coordinate_lat.should be_nil
   end
 
   it "should raise exception when method is not defined on the demeter class" do

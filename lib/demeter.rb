@@ -21,11 +21,10 @@ module Demeter
 
       object_method_name.gsub!(/^#{object_name}_/, "")
 
-      instance_eval <<-TXT
-        def #{method_name}                                          # def address_street
-          #{object_name}.#{object_method_name} if #{object_name}    #   address.street
-        end                                                         # end
-      TXT
+      self.define_singleton_method(method_name) do
+        target  = self.send object_name
+        target.send *([object_method_name] + attrs) if not target.nil?
+      end
 
       send(method_name)
     end
@@ -45,6 +44,11 @@ module Demeter
   module ClassMethods
     def demeter(*attr_names)
       self.demeter_names = attr_names
+      self.class_eval do
+        attr_names.each do |name|
+          attr_accessor name
+        end
+      end
     end
   end
 end

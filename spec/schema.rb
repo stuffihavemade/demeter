@@ -12,4 +12,15 @@ ActiveRecord::Schema.define(:version => 0) do
     t.string :name
     t.references :owner
   end
+
+  create_table :implicits do |t|
+    t.references :super
+  end
+
+  create_table :subs do |t|
+    t.references :implicit
+  end
+
+  create_table :supers do |t|
+  end
 end

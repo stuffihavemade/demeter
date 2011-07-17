@@ -12,3 +12,16 @@ end
 class Owner < ActiveRecord::Base
   belongs_to :task
 end
+
+class Implicit < ActiveRecord::Base
+  has_one :sub
+  belongs_to :super
+end
+
+class Sub < ActiveRecord::Base
+  belongs_to :implicit
+end
+
+class Super < ActiveRecord::Base
+  has_many :implicits
+end
