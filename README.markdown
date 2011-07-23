@@ -61,6 +61,7 @@ You can easily override a method that has been "demeterized"; just declare it be
 	end
 
 Demeter will automatically defined accessor methods from relationship defined. So, for
+
 	class User < ActiveRecord::Base
 	  demeter :address
 	end
