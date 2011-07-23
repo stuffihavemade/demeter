@@ -42,11 +42,13 @@ module Demeter
   end
 
   module ClassMethods
-    def demeter(*attr_names)
-      self.demeter_names = attr_names
-      self.class_eval do
-        attr_names.each do |name|
-          attr_accessor name
+    def demeter(*attrs)
+      if attrs.inject(true){|x,y| x and y.is_a? Symbol}
+        self.demeter_names = attrs
+        self.class_eval do
+          attrs.each do |name|
+            attr_accessor name
+          end
         end
       end
     end

@@ -66,3 +66,18 @@ end
 
 class NoAccessorsChild
 end
+
+class SingleWithOptions
+  extend Demeter
+  demeter :address => [:default, :delegate => [:zip => :zip_code]]
+end
+
+class WithTooManyDefaults
+  extend Demeter
+end
+
+class WithAndWithoutOptions
+  extend Demeter
+  demeter :animal,
+          :address => [:default, :delegate => {:zip => :zip_code}]
+end
