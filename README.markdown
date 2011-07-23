@@ -94,7 +94,26 @@ the demeter method
 
       user.address_country 
 
-will automatically be defined. 
+will automatically be defined. IMPORTANT NOTE: to retain backwards compatiblity,
+if the demeter macro method is used in a class, then the implicit ActiveRecord 
+demeter methods will cease to work, and will need to be defined explicitly. So, for
+
+	class User < ActiveRecord::Base
+	  has_one :address
+          demeter :other
+	end
+
+the demeter method
+
+      user.address_country 
+
+will no longer be defined. Instead, use
+
+	class User < ActiveRecord::Base
+	  has_one :address
+          demeter :other, :address
+	end
+.
 
 To-Do
 -----
