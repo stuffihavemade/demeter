@@ -89,7 +89,24 @@ class TwoWithOneOption
   demeter :address => {:delegate => {:zip => :zip_code}}, :animal => :default
 end
 
+class ParentClassDefault
+  def method_missing name, *args
+    :passed
+  end
+end
 
+class NilClass
+  def passed
+    :failed
+  end
+end
+
+class ChildClassDefault < ParentClassDefault
+  extend Demeter
+  demeter :address => [:default,
+                       :delegate => {:zip => :zip_code,
+                                     :l => :last_of_aritrary_number_of_args}]
+end
 
 class WithAndWithoutOptions
   extend Demeter

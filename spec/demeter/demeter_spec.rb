@@ -139,25 +139,33 @@ describe "Demeter" do
   end
 
   it "should respond to a message directly to a child marked default" do
-    single =SingleWithOptions.new
+    single = SingleWithOptions.new
     single.should respond_to(:city)
   end
 
   it "should send a message directly to a child marked default" do
-    single =SingleWithOptions.new
+    single = SingleWithOptions.new
     single.address.city = "hello"
     single.city.should == "hello"
   end
 
   it "should still be able to send normal messages to a child marked default" do
-    single =SingleWithOptions.new
+    single = SingleWithOptions.new
     single.address.city = "hello"
     single.address_city.should == "hello"
   end
 
+
   it "should still be able to respond to normal messages to a child marked default" do
-    single =SingleWithOptions.new
+    single = SingleWithOptions.new
     single.should respond_to(:address_city)
+  end
+
+
+  it "should not send a message to a default child that is nil" do
+    single = ChildClassDefault.new
+    single.address = nil
+    single.passed.should == :passed
   end
 
   it "should raise an error if more than one default is defined" do
@@ -176,6 +184,12 @@ describe "Demeter" do
     single = SingleWithOptions.new
     single.address.zip_code = 12345
     single.address_zip.should == 12345
+  end
+
+  it "should allow default and delegate to work together" do
+    single = SingleWithOptions.new
+    single.address.zip_code = 12345
+    single.zip.should == 12345
   end
 
   it "should be able to respond correctly for a delegated method" do

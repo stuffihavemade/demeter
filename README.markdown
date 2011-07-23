@@ -133,7 +133,9 @@ is valid. Defining more than one default at a time e.g.
           demeter :address => :default, :animal => :default
 	end
 
-will cause an error to be raised.
+will cause an error to be raised. If the default child object is nil, no
+messages will be redirected to it. This can cause problems with Rails, and
+the existence of the id method on nil.
 
 Delegate allows redirecting an incoming message to another message. For example,
 
@@ -157,6 +159,10 @@ For example,
         demeter :animal,
                 :address => [:default, :delegate => {:zip => :zip_code}]
       end
+
+will allow for the demeter method
+
+  user.zip
 
 .
 To-Do

@@ -20,7 +20,9 @@ module Demeter
 
       if object_name.nil?
         child = self.class.demeter_default_child
-        if (not child.nil?) and ((self.send child).respond_to? method_name)
+        if (not child.nil?) and
+           (not self.send(child).nil?) and 
+          ((self.send child).respond_to? method_name)
           return (self.send child).send *([method_name] + attrs)
         else
           return super
@@ -85,6 +87,12 @@ module Demeter
             full_old_name = child_object_name.to_s + '_' + old_method_name.to_s
             define_method(full_new_name) do |*args|
               self.send *([full_old_name] + args)
+            end
+            debugger
+            if child_object_name.to_s == self.demeter_default_child.to_s
+              define_method(new_method_name) do |*args|
+                self.send *([full_old_name] + args)
+              end
             end
           end
         end
