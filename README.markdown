@@ -115,6 +115,49 @@ will no longer be defined. Instead, use
 	end
 .
 
+The 'Demeter' module also currently two options: default and delegate. Default
+allows for any message passed to a parent object that is not understood to be first send to a designated child object, before being sent to the superclass. So, for
+
+	class User 
+          demeter :address => :default
+	end
+
+the demeter method
+
+    user.country
+
+is valid. Defining more than one default at a time e.g.
+
+	class User
+          demeter :address => :default, :animal => :default
+	end
+
+will cause an error to be raised.
+
+Delegate allows redirecting an incoming message to another message. For example,
+
+	class User 
+          demeter :address => {:delegate => {:zip => :zip_code}}
+	end
+
+will make the demeter method
+
+      user.address_zip
+
+exhibit the same behavior as
+
+      user.address_zip_code
+
+Delegate and default can be used together, and with multiple demeters at once.
+For example, 
+  
+      class User
+        extend Demeter
+        demeter :animal,
+                :address => [:default, :delegate => {:zip => :zip_code}]
+      end
+
+.
 To-Do
 -----
 
