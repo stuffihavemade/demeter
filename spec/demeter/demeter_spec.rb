@@ -84,7 +84,7 @@ describe "Demeter" do
     subject.address_coordinate_lat.should == 75.0
     subject.address_coordinate_lon.should == 85.0
   end
-  
+
   it "should delegate setters to nested methods from coordinate object" do
     subject.address_coordinate_lat = -75.0
     subject.address_coordinate_lat.should == -75.0
@@ -138,6 +138,55 @@ describe "Demeter" do
     doing { subject.address_title }.should raise_error(NoMethodError)
   end
 
+  it "should respond to a message directly to a child marked default" do
+    single =SingleWithOptions.new
+    single.should respond_to(:city)
+  end
+
+  it "should send a message directly to a child marked default" do
+    single =SingleWithOptions.new
+    single.address.city = "hello"
+    single.city.should == "hello"
+  end
+
+  it "should still be able to send normal messages to a child marked default" do
+    single =SingleWithOptions.new
+    single.address.city = "hello"
+    single.address_city.should == "hello"
+  end
+
+  it "should still be able to respond to normal messages to a child marked default" do
+    single =SingleWithOptions.new
+    single.should respond_to(:address_city)
+  end
+
+  it "should raise an error if more than one default is defined" do
+    doing do
+      WithTooManyDefaults.demeter :address => :default, :animal => :default
+    end.should raise_error(TooManyDefaultsError)
+  end
+
+  it "should be able to work with and without options simultaneously" do
+    options = WithAndWithoutOptions.new
+    options.should respond_to(:animal_name)
+    options.should respond_to(:address_city)
+  end
+
+  it "should be able to delegate an incoming message to a different message" do
+    single = SingleWithOptions.new
+    single.address.zip_code = 12345
+    single.address_zip.should == 12345
+  end
+
+  it "should be able to respond correctly for a delegated method" do
+    single = SingleWithOptions.new
+    single.should respond_to(:address_zip)
+  end
+
+  it "should be able to delegate an incoming message with an arbitrary number of arguments" do
+    single = SingleWithOptions.new
+    single.address_l(1,2,3).should == 3
+  end
   describe Demeter::ClassMethods do
     it "should return an array of demeter_names" do
       User.demeter_names.should be_kind_of(Array)

@@ -26,6 +26,9 @@ class Address
   def initialize
     @coordinate = Coordinate.new
   end
+  def last_of_arbitrary_number_of_args *args
+    args[-1]
+  end
 end
 
 class Coordinate
@@ -69,15 +72,32 @@ end
 
 class SingleWithOptions
   extend Demeter
-  demeter :address => [:default, :delegate => [:zip => :zip_code]]
+  demeter :address => [:default,
+                       :delegate => {:zip => :zip_code,
+                                     :l => :last_of_arbitrary_number_of_args}]
+  def initialize
+    @address = Address.new
+  end
 end
 
 class WithTooManyDefaults
   extend Demeter
 end
 
+class TwoWithOneOption
+  extend Demeter
+  demeter :address => {:delegate => {:zip => :zip_code}}, :animal => :default
+end
+
+
+
 class WithAndWithoutOptions
   extend Demeter
   demeter :animal,
           :address => [:default, :delegate => {:zip => :zip_code}]
+
+  def initialize
+    @animal = Animal.new
+    @address = Address.new
+  end
 end
