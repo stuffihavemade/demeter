@@ -31,7 +31,6 @@ describe "Demeter on ActiveRecord" do
     implicit = Implicit.new
     implicit.build_sub
     implicit.sub.define_singleton_method(:test){true}
-    debugger
     implicit.sub_test.should == true
   end
 
