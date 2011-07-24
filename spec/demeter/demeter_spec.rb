@@ -161,17 +161,29 @@ describe "Demeter" do
     single.should respond_to(:address_city)
   end
 
+  it "should not send a message to a default child that it understands" do
+    single = SingleWithOptions.new
+    single.define_singleton_method(:city) {:passed}
+    single.city.should == :passed
+  end
 
-  it "should not send a message to a default child that is nil" do
+  it "should raise an error if default child is nil" do
     single = ChildClassDefault.new
     single.address = nil
-    single.passed.should == :passed
+    doing {single.city}.should raise_error DefaultObjectIsNilError
   end
 
   it "should raise an error if more than one default is defined" do
     doing do
-      WithTooManyDefaults.demeter :address => :default, :animal => :default
-    end.should raise_error(TooManyDefaultsError)
+      WithTooManyDefaults.demeter do |d|
+        d.add :address do |a|
+          a.is_default_with_class Address
+        end
+        d.add :animal do |a|
+          a.is_default_with_class Animal
+        end
+      end
+    end.should raise_error
   end
 
   it "should be able to work with and without options simultaneously" do

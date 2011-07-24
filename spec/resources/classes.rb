@@ -72,9 +72,14 @@ end
 
 class SingleWithOptions
   extend Demeter
-  demeter :address => [:default,
-                       :delegate => {:zip => :zip_code,
-                                     :l => :last_of_arbitrary_number_of_args}]
+  demeter do |d|
+    d.has :address do |a|
+      a.is_default
+      a.delegates(:zip).to :zip_code
+      a.delegates(:l).to :last_of_arbitrary_number_of_args
+    end
+  end
+
   def initialize
     @address = Address.new
   end
@@ -86,7 +91,14 @@ end
 
 class TwoWithOneOption
   extend Demeter
-  demeter :address => {:delegate => {:zip => :zip_code}}, :animal => :default
+  demeter do |d|
+    d.has :address do |a|
+      a.delegates(:zip).to :zip_code
+    end
+    d.has :animal do |a|
+      a.is_default
+    end
+  end
 end
 
 class ParentClassDefault
@@ -103,15 +115,24 @@ end
 
 class ChildClassDefault < ParentClassDefault
   extend Demeter
-  demeter :address => [:default,
-                       :delegate => {:zip => :zip_code,
-                                     :l => :last_of_aritrary_number_of_args}]
+  demeter do |d|
+    d.has :address do |a|
+      a.is_default
+      a.delegates(:zip).to :zip_code
+      a.delegates(:l).to :last_of_arbitrary_number_of_args
+    end
+  end
 end
 
 class WithAndWithoutOptions
   extend Demeter
-  demeter :animal,
-          :address => [:default, :delegate => {:zip => :zip_code}]
+  demeter do |d|
+    d.has :animal
+    d.has :address do |a|
+      a.is_default
+      a.delegates(:zip).to :zip_code
+    end
+  end
 
   def initialize
     @animal = Animal.new

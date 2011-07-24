@@ -1,3 +1,5 @@
+require File.expand_path("demeter/demeter_options/demeter_options_dispatcher", File.dirname(__FILE__))
+
 module Demeter
   def self.extended(base)
     base.class_eval do
@@ -5,136 +7,70 @@ module Demeter
       extend ClassMethods
 
       class << self
-        attr_accessor :demeter_names, :demeter_default_child
+        attr_accessor :demeter_names, :default_name, :nil_block
       end
 
       base.demeter_names = []
-      base.demeter_default_child = nil
     end
   end
 
   module InstanceMethods
-    def method_missing(method_name, *attrs, &block)
+
+    def method_missing_proc method_name, *attrs, &block
       object_method_name = method_name.to_s
-      object_name = self.class.demeter_names.find {|name| object_method_name =~ /^#{name}_/ }
 
-      if object_name.nil?
-        child = self.class.demeter_default_child
-        if (not child.nil?) and
-           (not self.send(child).nil?) and 
-          ((self.send child).respond_to? method_name)
-          return (self.send child).send *([method_name] + attrs)
-        else
-          return super
-        end
+      object_name = self.class.demeter_names.find do |name| 
+        object_method_name =~ /^#{name}_/ 
       end
 
-      object_method_name.gsub!(/^#{object_name}_/, "")
+      child = self.class.default_name
 
-      self.define_singleton_method(method_name) do
-        target  = self.send object_name
-        target.send *([object_method_name] + attrs) if not target.nil?
-      end
-
-      send(method_name)
-    end
-
-    def respond_to?(method_name, include_private = false)
-      if super
-        return true
-      end
-
-      object_method_name = method_name.to_s
-      object_name = self.class.demeter_names.find {|name| object_method_name =~ /^#{name}_/ }
-
-
-      if object_name && (object = send(object_name))
-        object.respond_to?(object_method_name.gsub(/^#{Regexp.escape(object_name.to_s)}_/, ""))
-      else
-        child = self.class.demeter_default_child
-        if not child.nil?
-          (self.send child).respond_to? method_name
+      if object_name.nil? and child.nil?
+        false
+      elsif object_name.nil?
+        child_object = self.send child
+        if child_object.nil?
+          message = 'Default object is nil. It must be non-nil for default ' +
+            'to work correctly.'
+          raise DefaultObjectIsNilError.new message
+        elsif child_object.respond_to? method_name
+            lambda {child_object.send method_name, *attrs, &block}
         else
           false
         end
+      else
+          object_method_name.gsub!(/^#{object_name}_/, "")
+          target  = self.send object_name
+          if target.nil?
+            lambda {nil}
+          else
+            lambda do 
+            target.send object_method_name, *attrs, &block
+            end
+        end
       end
+    end
+    def method_missing(method_name, *attrs, &block)
+      result = method_missing_proc(method_name, *attrs, &block)
+      if result
+        result.call
+      else
+        super
+      end
+    end
+
+    def respond_to?(method_name, include_private = false)
+      super || !! method_missing_proc(method_name)
     end
   end
 
   module ClassMethods
-    def eval_hash hash, to_be_demetered
-      hash.each do |child_object_name, options|
-        to_be_demetered << child_object_name
-        inner_options = get_inner_options options
-        eval_possible_default_option inner_options, child_object_name
-        eval_possible_delegators inner_options, child_object_name
-      end
-    end
+    def demeter *attrs, &block
+      dispatcher = DemeterOptionsDispatcher.new self
+      dispatcher.dispatch! *attrs, &block
 
-    def eval_possible_default_option options, child_object_name
-      if options.include? :default
-        raise TooManyDefaultsError unless self.demeter_default_child.nil?
-        self.demeter_default_child = child_object_name
-      end
-    end
-
-    def eval_possible_delegators options, child_object_name
-      if has_delegators? options
-        delegators = get_delegators options
-        delegators[:delegate].each do |new_method_name, old_method_name|
-          self.class_eval do
-            full_new_name = child_object_name.to_s + '_' + new_method_name.to_s
-            full_old_name = child_object_name.to_s + '_' + old_method_name.to_s
-            define_method(full_new_name) do |*args|
-              self.send *([full_old_name] + args)
-            end
-            debugger
-            if child_object_name.to_s == self.demeter_default_child.to_s
-              define_method(new_method_name) do |*args|
-                self.send *([full_old_name] + args)
-              end
-            end
-          end
-        end
-      end
-    end
-
-    def object_name_only? attr
-      (not attr.respond_to? :values) or (not attr.respond_to? :keys)
-    end
-
-    def has_delegators? options
-      not get_delegators(options).nil?
-    end
-
-    def get_delegators options
-      delegators = options.find do |d|
-        d.respond_to? :keys and not d[:delegate].nil?
-      end 
-    end
-
-    def get_inner_options options
-      if many_options? options
-        options
-      else
-        [options]
-      end
-    end
-
-    def many_options? option_value
-      option_value.respond_to? :each
-    end
-
-    def demeter(*attrs)
-      to_be_demetered = []
-      attrs.each do |a|
-        if object_name_only? a
-          to_be_demetered << a 
-        else
-          eval_hash a, to_be_demetered
-        end
-      end
-      self.demeter_names = to_be_demetered
+      self.demeter_names = dispatcher.to_be_demetered
+      self.default_name = dispatcher.default_name
       self.class_eval do
         demeter_names.each do |name|
           attr_accessor name
@@ -144,8 +80,7 @@ module Demeter
   end
 end
 
-  # ActiveRecord support
-  require "demeter/active_record"
-
-  class TooManyDefaultsError < Exception
-  end
+class DefaultObjectIsNilError < RuntimeError
+end
+# ActiveRecord support
+require "demeter/active_record"

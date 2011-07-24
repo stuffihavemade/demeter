@@ -13,5 +13,6 @@ group :development, :test do
   gem "jeweler", "~> 1.5.2"
   gem "sqlite3", "1.3.3"
   gem 'ruby-debug19', :require => 'ruby-debug'
+  gem "factory_girl", "~> 2.0.0.rc1"
 end
 

@@ -120,7 +120,12 @@ The 'Demeter' module also currently two options: default and delegate. Default
 allows for any message passed to a parent object that is not understood to be first send to a designated child object, before being sent to the superclass. So, for
 
 	class User 
-          demeter :address => :default
+          extend Demeter
+          demeter do |d|
+            d.has :address |a|
+              a.is_default
+            end
+          end
 	end
 
 the demeter method
@@ -130,18 +135,30 @@ the demeter method
 is valid. Defining more than one default at a time e.g.
 
 	class User
-          demeter :address => :default, :animal => :default
+          extend Demeter
+          demeter do |d|
+            d.has :address |a|
+              a.is_default
+            end
+            d.has :animal |a|
+              a.is_default
+            end
+          end
 	end
 
-will cause an error to be raised. If the default child object is nil, no
-messages will be redirected to it. This can cause problems with Rails, and
-the existence of the id method on nil.
+will cause an error to be raised. An error will also be raised if 
+a message is attempted to be passed to a default object that is nil.
 
 Delegate allows redirecting an incoming message to another message. For example,
 
 	class User 
-          demeter :address => {:delegate => {:zip => :zip_code}}
-	end
+          extend Demeter
+          demeter do |d|
+            d.has :address do |a|
+              a.delegates(:zip).to :zip_code
+            end
+          end
+        end
 
 will make the demeter method
 
@@ -156,8 +173,12 @@ For example,
   
       class User
         extend Demeter
-        demeter :animal,
-                :address => [:default, :delegate => {:zip => :zip_code}]
+        demeter do |d|
+          d.has :animal
+          d.has :address do |a|
+            a.is_default
+            a.delegates(:zip).to :zip_code
+          end
       end
 
 will allow for the demeter method
