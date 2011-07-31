@@ -30,23 +30,21 @@ module Demeter
       elsif object_name.nil?
         child_object = self.send child
         if child_object.nil?
-          message = 'Default object is nil. It must be non-nil for default ' +
-            'to work correctly.'
-          raise DefaultObjectIsNilError.new message
+          false
         elsif child_object.respond_to? method_name
-            lambda {child_object.send method_name, *attrs, &block}
+          lambda {child_object.send method_name, *attrs, &block}
         else
           false
         end
       else
-          object_method_name.gsub!(/^#{object_name}_/, "")
-          target  = self.send object_name
-          if target.nil?
-            lambda {nil}
-          else
-            lambda do 
+        object_method_name.gsub!(/^#{object_name}_/, "")
+        target  = self.send object_name
+        if target.nil?
+          lambda {nil}
+        else
+          lambda do 
             target.send object_method_name, *attrs, &block
-            end
+          end
         end
       end
     end
@@ -80,7 +78,5 @@ module Demeter
   end
 end
 
-class DefaultObjectIsNilError < RuntimeError
-end
 # ActiveRecord support
 require "demeter/active_record"
