@@ -167,12 +167,6 @@ describe "Demeter" do
     single.city.should == :passed
   end
 
-  it "should raise an error if default child is nil" do
-    single = ChildClassDefault.new
-    single.address = nil
-    doing {single.city}.should raise_error DefaultObjectIsNilError
-  end
-
   it "should raise an error if more than one default is defined" do
     doing do
       WithTooManyDefaults.demeter do |d|
